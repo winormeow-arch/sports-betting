@@ -1,0 +1,52 @@
+name: gunluk tahmin sitesi
+
+on:
+  workflow_dispatch:          # Actions sekmesinden elle çalıştırma
+  schedule:
+    - cron: "0 5 * * *"       # Her gün 05:00 UTC (08:00 TR)
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: tahmin
+  cancel-in-progress: true
+
+jobs:
+  tahmin:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Kütüphaneyi kur
+        run: pip install sports-betting
+
+      - name: Veriyi çek, modeli eğit, tahminleri yaz
+        run: python tahmin.py
+
+      - name: Tahminleri depoya kaydet
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add site/
+          git commit -m "Tahminler $(date -u +%F)" || echo "Değişiklik yok"
+          git push
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Siteyi yayınla
+        id: deploy
+        uses: actions/deploy-pages@v4

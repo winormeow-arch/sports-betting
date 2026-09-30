@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+defaults:
+  run:
+    shell: bash               # hata olursa adım gerçekten kırmızı olsun
+
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -21,30 +25,56 @@ jobs:
       - name: Kütüphaneyi kur
         run: pip install sports-betting
 
+      - name: Model dosyasını oluştur
+        run: |
+          cat > models.py <<'EOF'
+          from sklearn.compose import make_column_transformer
+          from sklearn.impute import SimpleImputer
+          from sklearn.linear_model import LogisticRegression
+          from sklearn.multioutput import MultiOutputClassifier
+          from sklearn.pipeline import make_pipeline
+          from sklearn.preprocessing import OneHotEncoder
+          from sportsbet.evaluation import ClassifierBettor
+
+          classifier = make_pipeline(
+              make_column_transformer(
+                  (OneHotEncoder(handle_unknown='ignore'), ['league', 'home_team', 'away_team']),
+                  remainder='passthrough',
+              ),
+              SimpleImputer(),
+              MultiOutputClassifier(LogisticRegression(solver='liblinear', random_state=7, class_weight='balanced')),
+          )
+          bettor = ClassifierBettor(
+              classifier,
+              betting_markets=['home_win', 'draw', 'away_win'],
+              init_cash=10000.0,
+              stake=50.0,
+          )
+          EOF
+
       - name: Veriyi indir (football-data, ücretsiz)
         run: |
           sportsbet dataloader train extract --stats football-data --odds football-data \
             --league Germany --league Italy --league France --division 1 --division 2 \
             --year 2021 --year 2022 --year 2023 --year 2024 \
-            --odds-type market_maximum -o dataloader.pkl
+            --odds-type market_maximum -o dataloader.pkl > /dev/null
 
       - name: Backtest (geçmişte bu model kazandırır mıydı?)
         run: |
+          set -o pipefail
           mkdir -p sonuclar
-          sportsbet evaluation backtest --dataloader dataloader.pkl --model logistic \
-            --betting-market home_win --betting-market draw --betting-market away_win \
-            --init-cash 10000 --stake 50 --cv 5 | tee sonuclar/backtest.txt
+          sportsbet evaluation backtest --dataloader dataloader.pkl --model models.py:bettor \
+            --cv 5 -o sonuclar/backtest | tee sonuclar/backtest.txt
 
       - name: Modeli eğit
         run: |
-          sportsbet evaluation fit --dataloader dataloader.pkl --model logistic \
-            --betting-market home_win --betting-market draw --betting-market away_win \
-            -o model.pkl
+          sportsbet evaluation fit --dataloader dataloader.pkl --model models.py:bettor -o model.pkl
 
       - name: Yaklaşan maçlar için value bet listesi
         run: |
+          set -o pipefail
           sportsbet evaluation bet --dataloader dataloader.pkl --bettor model.pkl \
-            | tee sonuclar/value-bets.txt
+            -o sonuclar/value-bets | tee sonuclar/value-bets.txt
 
       - name: Sonuçları depoya kaydet
         run: |

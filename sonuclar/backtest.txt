@@ -1,0 +1,80 @@
+Backtesting results
+Training start                        2020-08-21
+Training end                          2021-02-27
+Testing start                         2021-02-27
+Testing end                           2021-11-06
+Number of betting days                625       
+Number of bets                        1407      
+Yield percentage per bet              -0.10     
+ROI percentage                        -0.40     
+Final cash                            9,957.50  
+Number of bets (home_win)             238       
+Number of bets (draw)                 709       
+Number of bets (away_win)             460       
+Yield percentage per bet (home_win)   -0.40     
+Yield percentage per bet (draw)       4.20      
+Yield percentage per bet (away_win)   -6.40     
+                                                
+Training start                        2020-08-21
+Training end                          2021-11-06
+Testing start                         2021-11-06
+Testing end                           2022-05-14
+Number of betting days                645       
+Number of bets                        1407      
+Yield percentage per bet              8.30      
+ROI percentage                        58.60     
+Final cash                            15,857.00 
+Number of bets (home_win)             204       
+Number of bets (draw)                 720       
+Number of bets (away_win)             483       
+Yield percentage per bet (home_win)   12.10     
+Yield percentage per bet (draw)       7.80      
+Yield percentage per bet (away_win)   7.40      
+                                                
+Training start                        2020-08-21
+Training end                          2022-05-14
+Testing start                         2022-05-15
+Testing end                           2023-02-25
+Number of betting days                639       
+Number of bets                        1408      
+Yield percentage per bet              1.70      
+ROI percentage                        11.90     
+Final cash                            11,186.50 
+Number of bets (home_win)             145       
+Number of bets (draw)                 753       
+Number of bets (away_win)             510       
+Yield percentage per bet (home_win)   1.30      
+Yield percentage per bet (draw)       -3.20     
+Yield percentage per bet (away_win)   9.00      
+                                                
+Training start                        2020-08-21
+Training end                          2023-02-25
+Testing start                         2023-02-26
+Testing end                           2023-11-06
+Number of betting days                637       
+Number of bets                        1407      
+Yield percentage per bet              -0.40     
+ROI percentage                        -3.00     
+Final cash                            9,703.50  
+Number of bets (home_win)             119       
+Number of bets (draw)                 787       
+Number of bets (away_win)             501       
+Yield percentage per bet (home_win)   -1.80     
+Yield percentage per bet (draw)       4.90      
+Yield percentage per bet (away_win)   -8.40     
+                                                
+Training start                        2020-08-21
+Training end                          2023-11-06
+Testing start                         2023-11-06
+Testing end                           2024-06-02
+Number of betting days                659       
+Number of bets                        1405      
+Yield percentage per bet              -4.30     
+ROI percentage                        -30.30    
+Final cash                            6,970.50  
+Number of bets (home_win)             92        
+Number of bets (draw)                 812       
+Number of bets (away_win)             501       
+Yield percentage per bet (home_win)   -9.20     
+Yield percentage per bet (draw)       5.50      
+Yield percentage per bet (away_win)   -19.30    

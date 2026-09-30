@@ -17,10 +17,14 @@ from sportsbet.dataloaders import DataLoader
 from sportsbet.evaluation import ClassifierBettor, derive_complementary_events, find_latest_odds_column
 
 # ---- AYARLAR ---------------------------------------------------------------
-LIGLER = ['England', 'Spain', 'Germany', 'Italy', 'France', 'Turkey', 'Netherlands', 'Portugal']
+# football-data'nın yaklaşan maç listesi verdiği tüm Avrupa ligleri, tüm küme seviyeleriyle
+LIGLER = ['England', 'Scotland', 'Germany', 'Italy', 'Spain', 'France',
+          'Netherlands', 'Belgium', 'Portugal', 'Turkey', 'Greece']
+KUMELER = [1, 2, 3, 4, 5]  # olmayan kümeler otomatik atlanır
 LIG_TR = {
-    'England': 'İngiltere', 'Spain': 'İspanya', 'Germany': 'Almanya', 'Italy': 'İtalya',
-    'France': 'Fransa', 'Turkey': 'Türkiye', 'Netherlands': 'Hollanda', 'Portugal': 'Portekiz',
+    'England': 'İngiltere', 'Scotland': 'İskoçya', 'Germany': 'Almanya', 'Italy': 'İtalya',
+    'Spain': 'İspanya', 'France': 'Fransa', 'Netherlands': 'Hollanda', 'Belgium': 'Belçika',
+    'Portugal': 'Portekiz', 'Turkey': 'Türkiye', 'Greece': 'Yunanistan',
 }
 SEZONLAR = [2023, 2024, 2025, 2026]  # sezonun bittiği yıl; devam eden sezon otomatik eklenir
 MARKETLER = ['home_win', 'draw', 'away_win', 'over_2.5', 'under_2.5']
@@ -38,7 +42,7 @@ def veri_yukle():
     from sportsbet.sources import FootballDataOdds, FootballDataStats
 
     dl = DataLoader(
-        param_grid={'league': LIGLER, 'division': [1], 'year': SEZONLAR},
+        param_grid={'league': LIGLER, 'division': KUMELER, 'year': SEZONLAR},
         stats=FootballDataStats(),
         odds=FootballDataOdds(),
     )
@@ -85,7 +89,7 @@ def tahminleri_uret():
         satir = X_fix.iloc[i]
         mac = {
             'tarih': pd.Timestamp(X_fix.index[i]).strftime('%Y-%m-%d'),
-            'lig': LIG_TR.get(satir['league'], str(satir['league'])),
+            'lig': f"{LIG_TR.get(satir['league'], str(satir['league']))} {int(satir['division'])}. Lig",
             'ev': str(satir['home_team']),
             'dep': str(satir['away_team']),
             'marketler': [],

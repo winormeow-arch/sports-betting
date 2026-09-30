@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maç Tahminleri</title>
+<style>
+:root{--bg:#f4f5f7;--kart:#fff;--yazi:#15171a;--soluk:#6b7280;--cizgi:#e5e7eb;--vurgu:#0a7d4f;--vurgu-bg:#e6f6ee;--bar:#3b82f6}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--kart:#181b21;--yazi:#eceef2;--soluk:#9aa1ad;--cizgi:#2a2f38;--vurgu:#34d399;--vurgu-bg:#10362a;--bar:#60a5fa}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--yazi);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{padding:16px 16px 8px;max-width:760px;margin:auto}
+h1{font-size:22px;margin:0 0 4px}
+.not{color:var(--soluk);font-size:13px;margin:0}
+.filtre{display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px;max-width:760px;margin:auto;position:sticky;top:0;background:var(--bg);z-index:2}
+select,label{font:inherit;background:var(--kart);color:var(--yazi);border:1px solid var(--cizgi);border-radius:10px;padding:8px 10px}
+label{display:flex;align-items:center;gap:6px}
+main{max-width:760px;margin:auto;padding:4px 16px 32px}
+.gun{font-weight:600;color:var(--soluk);margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.ust{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.takim{font-weight:650;font-size:16px}
+.lig{color:var(--soluk);font-size:12px;white-space:nowrap}
+.yorum{font-size:13px;color:var(--soluk);margin:4px 0 10px}
+.yorum b{color:var(--yazi)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{color:var(--soluk);font-weight:500;text-align:right;padding:3px 4px}
+th:first-child,td:first-child{text-align:left}
+td{padding:5px 4px;border-top:1px solid var(--cizgi);text-align:right;font-variant-numeric:tabular-nums}
+.barwrap{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.bar{height:6px;border-radius:3px;background:var(--bar);opacity:.8}
+tr.deger td{background:var(--vurgu-bg)}
+tr.deger td:first-child{color:var(--vurgu);font-weight:650}
+.rozet{display:inline-block;font-size:11px;font-weight:700;color:var(--vurgu);border:1px solid var(--vurgu);border-radius:6px;padding:0 5px;margin-left:4px}
+.bos{color:var(--soluk);text-align:center;padding:40px 0}
+</style>
+</head>
+<body>
+<header>
+<h1>Maç Tahminleri</h1>
+<p class="not">Güncelleme: 30.09.2026 01:49 UTC · Lojistik regresyon modeli, takım formuna bakar. Backtest'te uzun vadede yaklaşık başabaş çıktı; bilgi amaçlıdır.</p>
+</header>
+<div class="filtre">
+<select id="lig"><option value="">Tüm ligler</option></select>
+<label><input type="checkbox" id="sadeceDeger"> Sadece değerli bahisler</label>
+</div>
+<main id="liste"></main>
+<script>
+const MACLAR = [];
+const ligSec = document.getElementById('lig'), degerSec = document.getElementById('sadeceDeger'), liste = document.getElementById('liste');
+[...new Set(MACLAR.map(m => m.lig))].sort().forEach(l => { const o = document.createElement('option'); o.value = o.textContent = l; ligSec.appendChild(o); });
+const f = x => x == null ? '–' : x.toFixed(2);
+function gunAdi(t){ return new Date(t + 'T12:00:00').toLocaleDateString('tr-TR', {weekday:'long', day:'numeric', month:'long'}); }
+function ciz(){
+  const secili = MACLAR.filter(m => (!ligSec.value || m.lig === ligSec.value) && (!degerSec.checked || m.marketler.some(k => k.deger)));
+  if (!secili.length){ liste.innerHTML = '<p class="bos">Gösterilecek maç yok.</p>'; return; }
+  let html = '', sonGun = '';
+  for (const m of secili){
+    if (m.tarih !== sonGun){ html += `<div class="gun">${gunAdi(m.tarih)}</div>`; sonGun = m.tarih; }
+    const ms = m.marketler.slice(0,3), fav = ms.reduce((a,b) => b.olasilik > a.olasilik ? b : a);
+    const gol = m.marketler[3].olasilik >= 50 ? '2.5 Üst' : '2.5 Alt';
+    const degerler = m.marketler.filter(k => k.deger).map(k => k.ad);
+    html += `<div class="kart"><div class="ust"><span class="takim">${m.ev} – ${m.dep}</span><span class="lig">${m.lig}</span></div>
+      <p class="yorum">Model: <b>${fav.ad}</b> (%${fav.olasilik}) · gol tarafı <b>${gol}</b>${degerler.length ? ' · değerli: <b>' + degerler.join(', ') + '</b>' : ''}</p>
+      <table><tr><th>Bahis</th><th>Olasılık</th><th>Adil oran</th><th>Piyasa</th></tr>`;
+    for (const k of m.marketler){
+      html += `<tr class="${k.deger ? 'deger' : ''}"><td>${k.ad}${k.deger ? '<span class="rozet">DEĞER</span>' : ''}</td>
+        <td><div class="barwrap"><div class="bar" style="width:${Math.round(k.olasilik*0.5)}px"></div>%${k.olasilik}</div></td>
+        <td>${f(k.adil_oran)}</td><td>${f(k.oran)}</td></tr>`;
+    }
+    html += '</table></div>';
+  }
+  liste.innerHTML = html;
+}
+ligSec.onchange = degerSec.onchange = ciz;
+ciz();
+</script>
+</body>
+</html>

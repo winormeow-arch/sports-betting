@@ -25,31 +25,32 @@ jobs:
       - name: Kütüphaneyi kur
         run: pip install sports-betting
 
-      - name: Model dosyasını oluştur
+      - name: Kuralı oluştur (2.5 ÜST < 1.6 ve favori 1.6-2.2 → ÜST)
         run: |
           cat > models.py <<'EOF'
-          from sklearn.compose import make_column_transformer
-          from sklearn.impute import SimpleImputer
-          from sklearn.linear_model import LogisticRegression
-          from sklearn.multioutput import MultiOutputClassifier
-          from sklearn.pipeline import make_pipeline
-          from sklearn.preprocessing import OneHotEncoder
-          from sportsbet.evaluation import ClassifierBettor
+          import numpy as np
+          from sportsbet.evaluation import BaseBettor, find_latest_odds_column
 
-          classifier = make_pipeline(
-              make_column_transformer(
-                  (OneHotEncoder(handle_unknown='ignore'), ['league', 'home_team', 'away_team']),
-                  remainder='passthrough',
-              ),
-              SimpleImputer(),
-              MultiOutputClassifier(LogisticRegression(solver='liblinear', random_state=7, class_weight='balanced')),
-          )
-          bettor = ClassifierBettor(
-              classifier,
-              betting_markets=['home_win', 'draw', 'away_win'],
-              init_cash=10000.0,
-              stake=50.0,
-          )
+
+          class KuralBettor(BaseBettor):
+              """2.5 ÜST oranı 1.6'dan düşük VE favorinin oranı 1.6-2.2 arasında olan maçlara 2.5 ÜST oynar."""
+
+              _APPEND_ODDS = True
+
+              def _fit(self, X, Y, O):
+                  return self
+
+              def _predict_proba(self, X):
+                  cols = list(X.columns)
+                  ev = X[find_latest_odds_column(cols, 'home_win')]
+                  dep = X[find_latest_odds_column(cols, 'away_win')]
+                  ust = X[find_latest_odds_column(cols, 'over_2.5')]
+                  favori = np.minimum(ev, dep)
+                  kural = (ust < 1.6) & (favori >= 1.6) & (favori <= 2.2)
+                  return kural.astype(float).to_numpy().reshape(-1, 1)
+
+
+          bettor = KuralBettor(betting_markets=['over_2.5'], init_cash=10000.0, stake=50.0)
           EOF
 
       - name: Veriyi indir (football-data, ücretsiz)
@@ -57,20 +58,20 @@ jobs:
           sportsbet dataloader train extract --stats football-data --odds football-data \
             --league Germany --league Italy --league France --division 1 --division 2 \
             --year 2021 --year 2022 --year 2023 --year 2024 \
-            --odds-type market_maximum -o dataloader.pkl > /dev/null
+            --odds-type market_average -o dataloader.pkl > /dev/null
 
-      - name: Backtest (geçmişte bu model kazandırır mıydı?)
+      - name: Backtest (geçmişte bu kural kazandırır mıydı?)
         run: |
           set -o pipefail
           mkdir -p sonuclar
           sportsbet evaluation backtest --dataloader dataloader.pkl --model models.py:bettor \
             --cv 5 -o sonuclar/backtest | tee sonuclar/backtest.txt
 
-      - name: Modeli eğit
+      - name: Kuralı hazırla
         run: |
           sportsbet evaluation fit --dataloader dataloader.pkl --model models.py:bettor -o model.pkl
 
-      - name: Yaklaşan maçlar için value bet listesi
+      - name: Yaklaşan maçlarda kurala uyanlar
         run: |
           set -o pipefail
           sportsbet evaluation bet --dataloader dataloader.pkl --bettor model.pkl \

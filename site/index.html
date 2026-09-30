@@ -38,7 +38,7 @@ tr.deger td:first-child{color:var(--vurgu);font-weight:650}
 <body>
 <header>
 <h1>Maç Tahminleri</h1>
-<p class="not">Güncelleme: 30.09.2026 01:49 UTC · Lojistik regresyon modeli, takım formuna bakar. Backtest'te uzun vadede yaklaşık başabaş çıktı; bilgi amaçlıdır.</p>
+<p class="not">Güncelleme: 30.09.2026 01:59 UTC · Lojistik regresyon modeli, takım formuna bakar. Backtest'te uzun vadede yaklaşık başabaş çıktı; bilgi amaçlıdır.</p>
 </header>
 <div class="filtre">
 <select id="lig"><option value="">Tüm ligler</option></select>
@@ -46,7 +46,7 @@ tr.deger td:first-child{color:var(--vurgu);font-weight:650}
 </div>
 <main id="liste"></main>
 <script>
-const MACLAR = [];
+const MACLAR = [{"tarih": "2026-09-30", "lig": "İngiltere 5. Lig", "ev": "Eastleigh", "dep": "Southend", "marketler": [{"ad": "1", "olasilik": 24.8, "adil_oran": 4.03, "oran": 3.85, "deger": false}, {"ad": "X", "olasilik": 28.9, "adil_oran": 3.46, "oran": 3.75, "deger": true}, {"ad": "2", "olasilik": 46.2, "adil_oran": 2.16, "oran": 1.73, "deger": false}, {"ad": "2.5 Üst", "olasilik": 48.8, "adil_oran": 2.05, "oran": 1.6, "deger": false}, {"ad": "2.5 Alt", "olasilik": 51.2, "adil_oran": 1.95, "oran": 2.2, "deger": true}]}, {"tarih": "2026-09-30", "lig": "İngiltere 5. Lig", "ev": "Tamworth", "dep": "Sutton", "marketler": [{"ad": "1", "olasilik": 37.7, "adil_oran": 2.65, "oran": 2.23, "deger": false}, {"ad": "X", "olasilik": 26.4, "adil_oran": 3.79, "oran": 3.48, "deger": false}, {"ad": "2", "olasilik": 35.9, "adil_oran": 2.78, "oran": 2.72, "deger": false}, {"ad": "2.5 Üst", "olasilik": 47.4, "adil_oran": 2.11, "oran": 1.62, "deger": false}, {"ad": "2.5 Alt", "olasilik": 52.6, "adil_oran": 1.9, "oran": 2.17, "deger": true}]}];
 const ligSec = document.getElementById('lig'), degerSec = document.getElementById('sadeceDeger'), liste = document.getElementById('liste');
 [...new Set(MACLAR.map(m => m.lig))].sort().forEach(l => { const o = document.createElement('option'); o.value = o.textContent = l; ligSec.appendChild(o); });
 const f = x => x == null ? '–' : x.toFixed(2);

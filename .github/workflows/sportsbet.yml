@@ -1,0 +1,55 @@
+name: sportsbet value bet
+
+on:
+  workflow_dispatch:          # Actions sekmesinden elle çalıştırma
+  schedule:
+    - cron: "0 6 * * 5"       # Her cuma 06:00 UTC (09:00 TR)
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Kütüphaneyi kur
+        run: pip install sports-betting
+
+      - name: Veriyi indir (football-data, ücretsiz)
+        run: |
+          sportsbet dataloader train extract --stats football-data --odds football-data \
+            --league Germany --league Italy --league France --division 1 --division 2 \
+            --year 2021 --year 2022 --year 2023 --year 2024 \
+            --odds-type market_maximum -o dataloader.pkl
+
+      - name: Backtest (geçmişte bu model kazandırır mıydı?)
+        run: |
+          mkdir -p sonuclar
+          sportsbet evaluation backtest --dataloader dataloader.pkl --model logistic \
+            --betting-market home_win --betting-market draw --betting-market away_win \
+            --init-cash 10000 --stake 50 --cv 5 | tee sonuclar/backtest.txt
+
+      - name: Modeli eğit
+        run: |
+          sportsbet evaluation fit --dataloader dataloader.pkl --model logistic \
+            --betting-market home_win --betting-market draw --betting-market away_win \
+            -o model.pkl
+
+      - name: Yaklaşan maçlar için value bet listesi
+        run: |
+          sportsbet evaluation bet --dataloader dataloader.pkl --bettor model.pkl \
+            | tee sonuclar/value-bets.txt
+
+      - name: Sonuçları depoya kaydet
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add sonuclar/
+          git commit -m "Value bet sonuçları $(date -u +%F)" || echo "Değişiklik yok"
+          git push

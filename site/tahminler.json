@@ -1,48 +1,5 @@
 [
  {
-  "tarih": "2026-10-02",
-  "lig": "İspanya 2. Lig",
-  "ev": "Eldense",
-  "dep": "Oviedo",
-  "marketler": [
-   {
-    "ad": "1",
-    "olasilik": 21.6,
-    "adil_oran": 4.63,
-    "oran": 2.43,
-    "deger": false
-   },
-   {
-    "ad": "X",
-    "olasilik": 33.5,
-    "adil_oran": 2.98,
-    "oran": 2.94,
-    "deger": false
-   },
-   {
-    "ad": "2",
-    "olasilik": 44.9,
-    "adil_oran": 2.23,
-    "oran": 2.96,
-    "deger": true
-   },
-   {
-    "ad": "2.5 Üst",
-    "olasilik": 40.0,
-    "adil_oran": 2.5,
-    "oran": 2.48,
-    "deger": false
-   },
-   {
-    "ad": "2.5 Alt",
-    "olasilik": 60.0,
-    "adil_oran": 1.67,
-    "oran": 1.49,
-    "deger": false
-   }
-  ]
- },
- {
   "tarih": "2026-10-03",
   "lig": "İngiltere 3. Lig",
   "ev": "Burton",
